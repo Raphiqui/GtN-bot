@@ -1,12 +1,15 @@
 import json
 import time
 import pprint
+import random
 import telepot
 import requests
 from telepot.namedtuple import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 
 BOT_TOKEN = None
+GUESS = None
 LIVES = None
+LIVES_USED = 0
 SUP_BOUND = None
 GRETTINGS = ["hello", "good morning", "good afternoon", "good evening", "hi", "hey", "morning"]
 STEP = 0
@@ -48,6 +51,12 @@ def handle(msg):
         elif STEP == 1:
             result = program_selection(int(msg.get("text")))
             update_step()
+            guess_set_up()
+            print('Number to guess', GUESS)
+            bot.sendMessage(chat_id, result)
+
+        elif STEP == 2:
+            result = guess_session(int(msg.get("text")))
             bot.sendMessage(chat_id, result)
 
         else:
@@ -61,6 +70,24 @@ def update_game_params(lives_param, sup_bound_param):
     LIVES = lives_param
     SUP_BOUND = sup_bound_param
     return LIVES, SUP_BOUND
+
+
+
+def guess_session(user_input_number):
+    if user_input_number == GUESS:
+        return 'You\'ve found it using {0} live(s), congratulations !'
+    elif user_input_number > GUESS:
+        return 'The number is lower than that'
+        # check_if_dead(lives, lives_used, guess, sup_bound)
+    elif user_input_number < GUESS:
+        return 'The number is higher than that'
+        # check_if_dead(lives, lives_used, guess, sup_bound)
+
+
+def update_lives_used():
+    global LIVES_USED
+    LIVES_USED += 1
+    return LIVES_USED
 
 
 def program_selection(number_selected):
@@ -92,38 +119,6 @@ def program_rules():
                          'Program 3 || hard mode || 1 lives || number between 0 and 20']
     return selection_message
 
-    # program_input = input()
-    #
-    # try:
-    #     program_input = int(program_input)
-    #     if program_input == 1:
-    #         lives = 10
-    #         sup_bound = 10
-    #         print('Easy mode have been selected || parameters: {0} lives and number is between 0 and {1}'
-    #               .format(lives, sup_bound))
-    #         start(lives, sup_bound)
-    #     elif program_input == 2:
-    #         lives = 5
-    #         sup_bound = 15
-    #         print('Medium mode have been selected || parameters: {0} lives and number is between 0 and {1}'
-    #               .format(lives, sup_bound))
-    #         start(lives, sup_bound)
-    #     elif program_input == 3:
-    #         lives = 1
-    #         sup_bound = 20
-    #         print('Hard mode have been selected || parameters: {0} live and number is between 0 and {1}'
-    #               .format(lives, sup_bound))
-    #         start(lives, sup_bound)
-    #     elif program_input > 3:
-    #         print('Please enter a number between 1 and 3 !')
-    #         program_selection()
-    #     elif program_input < 1:
-    #         print('Please enter a number between 1 and 3 !')
-    #         program_selection()
-    # except ValueError:
-    #     print('Only integer values are allowed !')
-    #     program_selection()
-
 
 def features(command):
     """ Regroup all commands"""
@@ -148,8 +143,9 @@ def find_dog():
     return url
 
 
-def start():
-    print(f'Hello there')
+def guess_set_up():
+    global GUESS
+    GUESS = random.randint(1, SUP_BOUND)
 
 
 def fetch_conf():
@@ -161,7 +157,7 @@ def fetch_conf():
 if __name__ == '__main__':
     BOT_TOKEN = fetch_conf()
     bot = telepot.Bot(BOT_TOKEN)
-    start()
+
     bot.message_loop(handle)
 
     print('Listening ...')
