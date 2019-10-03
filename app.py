@@ -45,31 +45,34 @@ def handle(msg):
                                         one_time_keyboard=True
                                     ))
 
-        # elif STEP == 1:
-        #     program_selection(int(msg.get("text")))
-        #     STEP += 1
-            # for token, item in enumerate(result):
-            #     if item and token == 3:
-            #         bot.sendMessage(chat_id, item)
-            #     else:
-            #         bot.sendMessage(chat_id, item,
-            #                         reply_markup=ReplyKeyboardMarkup(
-            #                             keyboard=[
-            #                                 [KeyboardButton(text="1"), KeyboardButton(text="2"),
-            #                                  KeyboardButton(text="3")]
-            #                             ],
-            #                             one_time_keyboard=True
-            #                         ))
+        elif STEP == 1:
+            result = program_selection(int(msg.get("text")))
+            update_step()
+            bot.sendMessage(chat_id, result)
+
         else:
             result = features(msg.get("text").lower())
             if result:
                 bot.sendMessage(chat_id, result)
 
 
-def program_selection(msg):
-    print(msg)
-    print(type(msg))
+def update_game_params(lives_param, sup_bound_param):
+    global LIVES, SUP_BOUND
+    LIVES = lives_param
+    SUP_BOUND = sup_bound_param
+    return LIVES, SUP_BOUND
 
+
+def program_selection(number_selected):
+    if number_selected == 1:
+        update_game_params(10, 10)
+        return 'Easy mode have been selected || parameters: '+ str(LIVES) +' lives and number is between 0 and '+ str(SUP_BOUND)
+    elif number_selected == 2:
+        update_game_params(5, 15)
+        return 'Medium mode have been selected || parameters: '+ str(LIVES) +' lives and number is between 0 and '+ str(SUP_BOUND)
+    elif number_selected == 3:
+        update_game_params(1, 20)
+        return 'Hard mode have been selected || parameters: '+ str(LIVES) +' live and number is between 0 and '+ str(SUP_BOUND)
 
 def update_step():
     """
