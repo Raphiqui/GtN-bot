@@ -34,7 +34,6 @@ def handle(msg):
         elif msg['text'] == 'Yes' and STEP == 0:
             result = program_rules()
             update_step()
-            print(STEP)
             for token, item in enumerate(result):
                 if item and token == 3:
                     bot.sendMessage(chat_id, item)
@@ -80,19 +79,6 @@ def check_if_dead():
         return True
     else:
         return False
-    # if LIVES == 0:
-        # print(Fore.RED + 'Sorry, you loose !')
-        # print(Fore.CYAN + 'Would you like to restart ? (Answer by Y/N)')
-        # user_input_choice = input()
-        #
-        # if user_input_choice == 'Y':
-        #     program_selection()
-        # else:
-        #     print(Fore.CYAN + 'Ok, see you soon !')
-    #
-    # else:
-    #     print(Fore.YELLOW + 'You should try again, but be careful, you\'ve got {0} live(s) left'.format(lives))
-    #     getting_user_input(lives, guess, lives_used, sup_bound)
 
 
 def guess_session(user_input_number):
@@ -101,15 +87,15 @@ def guess_session(user_input_number):
     elif user_input_number > GUESS:
         is_dead = check_if_dead()
         if is_dead:
-            update_step()
+            undo_step()
             return '👎 Too bad, you loose 👎'
         else:
             return 'The number is lower than that'
     elif user_input_number < GUESS:
         is_dead = check_if_dead()
         if is_dead:
-            update_step()
-            return 'Too bad, you loose'
+            undo_step()
+            return '👎 Too bad, you loose 👎'
         else:
             return 'The number is higher than that'
 
@@ -142,6 +128,16 @@ def update_step():
     """
     global STEP
     STEP += 1
+    return STEP
+
+
+def undo_step():
+    """
+    Used to update the global variable in charge of the process of the game
+    :return: the global variable + 1
+    """
+    global STEP
+    STEP = 0
     return STEP
 
 
