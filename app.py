@@ -7,10 +7,10 @@ import requests
 from telepot.namedtuple import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 
 BOT_TOKEN = None
-GUESS = None
-LIVES = None
+GUESS = 0
+LIVES = 0
 LIVES_USED = 0
-SUP_BOUND = None
+SUP_BOUND = 0
 GRETTINGS = ["hello", "good morning", "good afternoon", "good evening", "hi", "hey", "morning"]
 STEP = 0
 
@@ -19,19 +19,24 @@ def handle(msg):
     :param msg: Message received by the bot
     """
     # Receive message and pass the command to call the corresponding func
+    print(STEP)
     content_type, chat_type, chat_id = telepot.glance(msg)
     print(f'Content type: {content_type} || chat type: {chat_type} || chat id: {chat_id}')
     # you can add more content type, like if someone send a picture
     if content_type == 'text':
         if msg['text'] == '/start':
-            bot.sendMessage(chat_id, 'Hello there, we\'re about to start a little game called \'guess the number\', would you ike to join ?',
+            bot.sendMessage(chat_id, 'Hello there, we\'re about to start a little game called \'guess the number\', would you like to join ?',
                             reply_markup=ReplyKeyboardMarkup(
                                 keyboard=[
                                     [KeyboardButton(text="Yes"), KeyboardButton(text="No")]
                                 ],
                                 one_time_keyboard= True
                             ))
-        elif msg['text'] == 'Yes' and STEP == 0:
+        elif (msg['text'] == 'Yes' and STEP == 0) or (msg['text'] == 'Yes' and STEP == 3):
+            print('toto')
+            if STEP == 3:
+                destroy_params()
+
             result = program_rules()
             update_step()
             for token, item in enumerate(result):
@@ -46,20 +51,28 @@ def handle(msg):
                                         ],
                                         one_time_keyboard=True
                                     ))
-
+        elif (STEP == 3 and msg['text'] == 'No') or (STEP == 0 and msg['text'] == 'No'):
+            destroy_params()
+            bot.sendMessage(chat_id, 'Ok then, when you\'ll be in a better mood just ask me with "/start" 😉')
         elif STEP == 1:
             result = program_selection(int(msg.get("text")))
             update_step()
             guess_set_up()
             print('Number to guess', GUESS)
             bot.sendMessage(chat_id, result)
-
         elif STEP == 2:
             update_lives()
             result = guess_session(int(msg.get("text")))
             bot.sendMessage(chat_id, result)
         elif STEP == 3:
-            bot.sendMessage(chat_id, 'Mmmmh, not sure about what to do now .....')
+            bot.sendMessage(chat_id,
+                            'Would you like to play again ?',
+                            reply_markup=ReplyKeyboardMarkup(
+                                keyboard=[
+                                    [KeyboardButton(text="Yes"), KeyboardButton(text="No")]
+                                ],
+                                one_time_keyboard=True
+                            ))
         else:
             result = features(msg.get("text").lower())
             if result:
@@ -83,18 +96,19 @@ def check_if_dead():
 
 def guess_session(user_input_number):
     if user_input_number == GUESS:
+        update_step()
         return '🎉 You\'ve found it using '+ str(LIVES_USED) +' live(s), congratulations ! 🎉'
     elif user_input_number > GUESS:
         is_dead = check_if_dead()
         if is_dead:
-            undo_step()
+            update_step()
             return '👎 Too bad, you loose 👎'
         else:
             return 'The number is lower than that'
     elif user_input_number < GUESS:
         is_dead = check_if_dead()
         if is_dead:
-            undo_step()
+            update_step()
             return '👎 Too bad, you loose 👎'
         else:
             return 'The number is higher than that'
@@ -131,14 +145,13 @@ def update_step():
     return STEP
 
 
-def undo_step():
-    """
-    Used to update the global variable in charge of the process of the game
-    :return: the global variable + 1
-    """
-    global STEP
+def destroy_params():
+    global STEP, LIVES_USED, LIVES, SUP_BOUND
     STEP = 0
-    return STEP
+    LIVES_USED = 0
+    LIVES = 0
+    SUP_BOUND = 0
+    return STEP, LIVES_USED, LIVES, SUP_BOUND
 
 
 def program_rules():
