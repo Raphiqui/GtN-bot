@@ -65,6 +65,7 @@ def handle(msg):
                 bot.sendMessage(chat_id, result)
 
 
+# TODO: add it into another file to import it
 def update_game_params(lives_param, sup_bound_param):
     global LIVES, SUP_BOUND
     LIVES = lives_param
@@ -84,6 +85,7 @@ def guess_session(user_input_number):
         # check_if_dead(lives, lives_used, guess, sup_bound)
 
 
+# TODO: add it into another file to import it
 def update_lives_used():
     global LIVES_USED
     LIVES_USED += 1
@@ -101,6 +103,8 @@ def program_selection(number_selected):
         update_game_params(1, 20)
         return 'Hard mode have been selected || parameters: '+ str(LIVES) +' live and number is between 0 and '+ str(SUP_BOUND)
 
+
+# TODO: add it into another file to import it
 def update_step():
     """
     Used to update the global variable in charge of the process of the game
@@ -143,6 +147,7 @@ def find_dog():
     return url
 
 
+# TODO: add it into another file to import it
 def guess_set_up():
     global GUESS
     GUESS = random.randint(1, SUP_BOUND)
