@@ -56,9 +56,11 @@ def handle(msg):
             bot.sendMessage(chat_id, result)
 
         elif STEP == 2:
+            update_lives()
             result = guess_session(int(msg.get("text")))
             bot.sendMessage(chat_id, result)
-
+        elif STEP == 3:
+            bot.sendMessage(chat_id, 'Mmmmh, not sure about what to do now .....')
         else:
             result = features(msg.get("text").lower())
             if result:
@@ -73,23 +75,51 @@ def update_game_params(lives_param, sup_bound_param):
     return LIVES, SUP_BOUND
 
 
+def check_if_dead():
+    if LIVES == 0:
+        return True
+    else:
+        return False
+    # if LIVES == 0:
+        # print(Fore.RED + 'Sorry, you loose !')
+        # print(Fore.CYAN + 'Would you like to restart ? (Answer by Y/N)')
+        # user_input_choice = input()
+        #
+        # if user_input_choice == 'Y':
+        #     program_selection()
+        # else:
+        #     print(Fore.CYAN + 'Ok, see you soon !')
+    #
+    # else:
+    #     print(Fore.YELLOW + 'You should try again, but be careful, you\'ve got {0} live(s) left'.format(lives))
+    #     getting_user_input(lives, guess, lives_used, sup_bound)
+
 
 def guess_session(user_input_number):
     if user_input_number == GUESS:
-        return 'You\'ve found it using {0} live(s), congratulations !'
+        return '🎉 You\'ve found it using '+ str(LIVES_USED) +' live(s), congratulations ! 🎉'
     elif user_input_number > GUESS:
-        return 'The number is lower than that'
-        # check_if_dead(lives, lives_used, guess, sup_bound)
+        is_dead = check_if_dead()
+        if is_dead:
+            update_step()
+            return '👎 Too bad, you loose 👎'
+        else:
+            return 'The number is lower than that'
     elif user_input_number < GUESS:
-        return 'The number is higher than that'
-        # check_if_dead(lives, lives_used, guess, sup_bound)
+        is_dead = check_if_dead()
+        if is_dead:
+            update_step()
+            return 'Too bad, you loose'
+        else:
+            return 'The number is higher than that'
 
 
 # TODO: add it into another file to import it
-def update_lives_used():
-    global LIVES_USED
+def update_lives():
+    global LIVES_USED, LIVES
     LIVES_USED += 1
-    return LIVES_USED
+    LIVES -= 1
+    return LIVES_USED, LIVES
 
 
 def program_selection(number_selected):
