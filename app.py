@@ -6,15 +6,17 @@ import requests
 import utilities
 from telepot.namedtuple import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 
-END = False
-BOT_TOKEN = None
+END = False # Used to control at which step of the game we're
+BOT_TOKEN = None # Store the bot token after parsing
 declaration = lambda n: [0 for _ in range(n)]
-GUESS, LIVES, LIVES_USED, SUP_BOUND, STEP = declaration(5)
+GUESS, LIVES, LIVES_USED, SUP_BOUND, STEP = declaration(5) # Set up those parameters to 0
 GRETTINGS = ["hello", "good morning", "good afternoon", "good evening", "hi", "hey", "morning"]
 
 def handle(msg):
-    """tion.
-    :param msg: Message received by the bot
+    """
+    Check the input of the user to redirect it in the correct part of the game
+    :param msg: input from the user
+    :return: string ad message to display to the user with some customization
     """
     # Receive message and pass the command to call the corresponding func
     global GUESS, STEP, LIVES_USED, LIVES, SUP_BOUND, END
@@ -83,6 +85,11 @@ def handle(msg):
 
 
 def guess_session(user_input_number):
+    """
+    Game session which will check according to what the user has entered the result of the game
+    :param user_input_number: integer entered by the user in order to find the correct answer
+    :return: string to display if he has won, lost or if the number is higher or lower than his answer
+    """
     global END
     if user_input_number == GUESS:
         END = utilities.update_end()
@@ -104,6 +111,11 @@ def guess_session(user_input_number):
 
 
 def program_selection(number_selected):
+    """
+    Display which mode has been selected by the user
+    :param number_selected: integer corresponding to a mode of playing
+    :return: string to display which mode has been selected
+    """
     global LIVES, SUP_BOUND
     if number_selected == 1:
         LIVES, SUP_BOUND = utilities.update_game_params(10, 10)
@@ -117,7 +129,10 @@ def program_selection(number_selected):
 
 
 def program_rules():
-
+    """
+    Display the rules of the game
+    :return: array containing the rules
+    """
     selection_message = ['Choose a program',
                          'Program 1 || easy mode || 10 lives || number between 0 and 10',
                          'Program 2 || medium mode || 5 lives || number between 0 and 15',
@@ -145,6 +160,10 @@ def find_dog():
 
 
 def fetch_conf():
+    """
+    Parses the configuration file to fetch the bot's token
+    :return: token as string from telegram bot application
+    """
     with open('conf.json') as json_data_file:
         data = json.load(json_data_file)
     return data["bot_token"]
