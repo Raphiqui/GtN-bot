@@ -34,10 +34,10 @@ def handle(msg):
                                 one_time_keyboard= True
                             ))
         elif msg['text'] == '/stop':
-            utilities.destroy_params()
+            utilities.reset_params()
         elif (msg['text'] == 'Yes' and STEP == 0) or (msg['text'] == 'Yes' and STEP == 2):
             if STEP == 2:
-                STEP, LIVES_USED, LIVES, SUP_BOUND, END = utilities.destroy_params()
+                STEP, LIVES_USED, LIVES, SUP_BOUND, END = utilities.reset_params()
 
             result = program_rules()
             STEP = utilities.update_step(STEP)
@@ -54,7 +54,7 @@ def handle(msg):
                                         one_time_keyboard=True
                                     ))
         elif (STEP == 2 and msg['text'] == 'No') or (STEP == 0 and msg['text'] == 'No'):
-            STEP, LIVES_USED, LIVES, SUP_BOUND, END = utilities.destroy_params()
+            STEP, LIVES_USED, LIVES, SUP_BOUND, END = utilities.reset_params()
             bot.sendMessage(chat_id, 'Ok then, when you\'ll be in a better mood just ask me with "/start" 😉')
         elif STEP == 1:
             result = program_selection(int(msg.get("text")))
@@ -66,7 +66,7 @@ def handle(msg):
             LIVES_USED, LIVES = utilities.update_lives(LIVES_USED, LIVES)
             result = guess_session(int(msg.get("text")))
             if END:
-                STEP, LIVES_USED, LIVES, SUP_BOUND, END = utilities.destroy_params()
+                STEP, LIVES_USED, LIVES, SUP_BOUND, END = utilities.reset_params()
                 bot.sendMessage(chat_id, result)
                 bot.sendMessage(chat_id,
                                 'Would you like to play again ?',
