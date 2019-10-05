@@ -6,6 +6,7 @@ import telepot
 import requests
 from telepot.namedtuple import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 
+END = False
 BOT_TOKEN = None
 GUESS = 0
 LIVES = 0
@@ -51,7 +52,7 @@ def handle(msg):
                                         ],
                                         one_time_keyboard=True
                                     ))
-        elif (STEP == 3 and msg['text'] == 'No') or (STEP == 0 and msg['text'] == 'No'):
+        elif (STEP == 2 and msg['text'] == 'No') or (STEP == 0 and msg['text'] == 'No'):
             destroy_params()
             bot.sendMessage(chat_id, 'Ok then, when you\'ll be in a better mood just ask me with "/start" 😉')
         elif STEP == 1:
@@ -63,16 +64,19 @@ def handle(msg):
         elif STEP == 2:
             update_lives()
             result = guess_session(int(msg.get("text")))
-            bot.sendMessage(chat_id, result)
-        elif STEP == 3:
-            bot.sendMessage(chat_id,
-                            'Would you like to play again ?',
-                            reply_markup=ReplyKeyboardMarkup(
-                                keyboard=[
-                                    [KeyboardButton(text="Yes"), KeyboardButton(text="No")]
-                                ],
-                                one_time_keyboard=True
-                            ))
+            if END:
+                destroy_params()
+                bot.sendMessage(chat_id, result)
+                bot.sendMessage(chat_id,
+                                'Would you like to play again ?',
+                                reply_markup=ReplyKeyboardMarkup(
+                                    keyboard=[
+                                        [KeyboardButton(text="Yes"), KeyboardButton(text="No")]
+                                    ],
+                                    one_time_keyboard=True
+                                ))
+            else:
+                bot.sendMessage(chat_id, result)
         else:
             result = features(msg.get("text").lower())
             if result:
@@ -94,21 +98,26 @@ def check_if_dead():
         return False
 
 
+def update_end():
+    global END
+    END = True
+    return END
+
 def guess_session(user_input_number):
     if user_input_number == GUESS:
-        update_step()
+        update_end()
         return '🎉 You\'ve found it using '+ str(LIVES_USED) +' live(s), congratulations ! 🎉'
     elif user_input_number > GUESS:
         is_dead = check_if_dead()
         if is_dead:
-            update_step()
+            update_end()
             return '👎 Too bad, you loose 👎'
         else:
             return 'The number is lower than that'
     elif user_input_number < GUESS:
         is_dead = check_if_dead()
         if is_dead:
-            update_step()
+            update_end()
             return '👎 Too bad, you loose 👎'
         else:
             return 'The number is higher than that'
@@ -146,12 +155,13 @@ def update_step():
 
 
 def destroy_params():
-    global STEP, LIVES_USED, LIVES, SUP_BOUND
+    global STEP, LIVES_USED, LIVES, SUP_BOUND, END
     STEP = 0
     LIVES_USED = 0
     LIVES = 0
     SUP_BOUND = 0
-    return STEP, LIVES_USED, LIVES, SUP_BOUND
+    END = False
+    return STEP, LIVES_USED, LIVES, SUP_BOUND, END
 
 
 def program_rules():
