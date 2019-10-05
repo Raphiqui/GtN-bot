@@ -1,25 +1,23 @@
 import json
 import time
 import pprint
-import random
 import telepot
 import requests
+import utilities
 from telepot.namedtuple import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 
 END = False
 BOT_TOKEN = None
-GUESS = 0
-LIVES = 0
-LIVES_USED = 0
-SUP_BOUND = 0
+declaration = lambda n: [0 for _ in range(n)]
+GUESS, LIVES, LIVES_USED, SUP_BOUND, STEP = declaration(5)
 GRETTINGS = ["hello", "good morning", "good afternoon", "good evening", "hi", "hey", "morning"]
-STEP = 0
 
 def handle(msg):
     """tion.
     :param msg: Message received by the bot
     """
     # Receive message and pass the command to call the corresponding func
+    global GUESS, STEP, LIVES_USED, LIVES, SUP_BOUND, END
     print(STEP)
     content_type, chat_type, chat_id = telepot.glance(msg)
     print(f'Content type: {content_type} || chat type: {chat_type} || chat id: {chat_id}')
@@ -33,13 +31,14 @@ def handle(msg):
                                 ],
                                 one_time_keyboard= True
                             ))
-        elif (msg['text'] == 'Yes' and STEP == 0) or (msg['text'] == 'Yes' and STEP == 3):
-            print('toto')
-            if STEP == 3:
-                destroy_params()
+        elif msg['text'] == '/stop':
+            utilities.destroy_params()
+        elif (msg['text'] == 'Yes' and STEP == 0) or (msg['text'] == 'Yes' and STEP == 2):
+            if STEP == 2:
+                STEP, LIVES_USED, LIVES, SUP_BOUND, END = utilities.destroy_params()
 
             result = program_rules()
-            update_step()
+            STEP = utilities.update_step(STEP)
             for token, item in enumerate(result):
                 if item and token == 3:
                     bot.sendMessage(chat_id, item)
@@ -53,19 +52,19 @@ def handle(msg):
                                         one_time_keyboard=True
                                     ))
         elif (STEP == 2 and msg['text'] == 'No') or (STEP == 0 and msg['text'] == 'No'):
-            destroy_params()
+            STEP, LIVES_USED, LIVES, SUP_BOUND, END = utilities.destroy_params()
             bot.sendMessage(chat_id, 'Ok then, when you\'ll be in a better mood just ask me with "/start" 😉')
         elif STEP == 1:
             result = program_selection(int(msg.get("text")))
-            update_step()
-            guess_set_up()
+            STEP = utilities.update_step(STEP)
+            GUESS = utilities.guess_set_up(SUP_BOUND)
             print('Number to guess', GUESS)
             bot.sendMessage(chat_id, result)
         elif STEP == 2:
-            update_lives()
+            LIVES_USED, LIVES = utilities.update_lives(LIVES_USED, LIVES)
             result = guess_session(int(msg.get("text")))
             if END:
-                destroy_params()
+                STEP, LIVES_USED, LIVES, SUP_BOUND, END = utilities.destroy_params()
                 bot.sendMessage(chat_id, result)
                 bot.sendMessage(chat_id,
                                 'Would you like to play again ?',
@@ -83,85 +82,38 @@ def handle(msg):
                 bot.sendMessage(chat_id, result)
 
 
-# TODO: add it into another file to import it
-def update_game_params(lives_param, sup_bound_param):
-    global LIVES, SUP_BOUND
-    LIVES = lives_param
-    SUP_BOUND = sup_bound_param
-    return LIVES, SUP_BOUND
-
-
-def check_if_dead():
-    if LIVES == 0:
-        return True
-    else:
-        return False
-
-
-def update_end():
-    global END
-    END = True
-    return END
-
 def guess_session(user_input_number):
+    global END
     if user_input_number == GUESS:
-        update_end()
+        END = utilities.update_end()
         return '🎉 You\'ve found it using '+ str(LIVES_USED) +' live(s), congratulations ! 🎉'
     elif user_input_number > GUESS:
-        is_dead = check_if_dead()
+        is_dead = utilities.check_if_dead(LIVES)
         if is_dead:
-            update_end()
+            END = utilities.update_end()
             return '👎 Too bad, you loose 👎'
         else:
             return 'The number is lower than that'
     elif user_input_number < GUESS:
-        is_dead = check_if_dead()
+        is_dead = utilities.check_if_dead(LIVES)
         if is_dead:
-            update_end()
+            END = utilities.update_end()
             return '👎 Too bad, you loose 👎'
         else:
             return 'The number is higher than that'
 
 
-# TODO: add it into another file to import it
-def update_lives():
-    global LIVES_USED, LIVES
-    LIVES_USED += 1
-    LIVES -= 1
-    return LIVES_USED, LIVES
-
-
 def program_selection(number_selected):
+    global LIVES, SUP_BOUND
     if number_selected == 1:
-        update_game_params(10, 10)
+        LIVES, SUP_BOUND = utilities.update_game_params(10, 10)
         return 'Easy mode have been selected || parameters: '+ str(LIVES) +' lives and number is between 0 and '+ str(SUP_BOUND)
     elif number_selected == 2:
-        update_game_params(5, 15)
+        LIVES, SUP_BOUND = utilities.update_game_params(5, 15)
         return 'Medium mode have been selected || parameters: '+ str(LIVES) +' lives and number is between 0 and '+ str(SUP_BOUND)
     elif number_selected == 3:
-        update_game_params(1, 20)
+        LIVES, SUP_BOUND = utilities.update_game_params(1, 20)
         return 'Hard mode have been selected || parameters: '+ str(LIVES) +' live and number is between 0 and '+ str(SUP_BOUND)
-
-
-# TODO: add it into another file to import it
-def update_step():
-    """
-    Used to update the global variable in charge of the process of the game
-    :return: the global variable + 1
-    """
-    global STEP
-    STEP += 1
-    return STEP
-
-
-def destroy_params():
-    global STEP, LIVES_USED, LIVES, SUP_BOUND, END
-    STEP = 0
-    LIVES_USED = 0
-    LIVES = 0
-    SUP_BOUND = 0
-    END = False
-    return STEP, LIVES_USED, LIVES, SUP_BOUND, END
 
 
 def program_rules():
@@ -178,10 +130,6 @@ def features(command):
     print(f'Command received: {command}')
     if any(ext in command for ext in GRETTINGS):
         return say_hello()
-    # elif command == 'yes' and STEP == 0:
-    #     return program_selection()
-    # elif command == 'no':
-    #     return start()
     elif command.find('dog') != -1:
         return find_dog()
 
@@ -194,12 +142,6 @@ def find_dog():
     contents = requests.get('https://random.dog/woof.json').json()
     url = contents['url']
     return url
-
-
-# TODO: add it into another file to import it
-def guess_set_up():
-    global GUESS
-    GUESS = random.randint(1, SUP_BOUND)
 
 
 def fetch_conf():
