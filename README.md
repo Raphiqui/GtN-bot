@@ -5,6 +5,10 @@ With Botfather's help you should be able to create your own bot. Be sure to keep
 which should looks like this 
 ```704418931:AAEtcZ*************```
 
+If you're using a virtual environment use th following command to activate it
+```
+.\venv\Scripts\activate
+```
 Be aware that to run this code you need to add a file named <strong>conf.json</strong>
 by using the following commands, 
 ```
